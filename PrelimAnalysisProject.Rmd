@@ -1,0 +1,64 @@
+```{r}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE,  
+                      warning = FALSE, message = FALSE, 
+                      fig.align = "center",
+                      R.options = list(max.print=100))
+
+library(tidyverse)
+dataset <- all_seasons %>%
+  filter(college == "Duke" | college == "Kentucky") %>%
+  filter(draft_number != "Undrafted") %>%
+  subset(select = c(player_name, player_height, college, draft_number))
+
+dataset <- dataset %>%
+  distinct(player_name, .keep_all = T)
+
+dataset$draft_number = as.numeric(dataset$draft_number)
+dataset$draft_number = log(dataset$draft_number)
+
+nrow(dataset)
+datasetDuke = dataset %>%
+  filter(college == "Duke")
+
+datasetKentucky = dataset %>%
+  filter(college == "Kentucky")
+
+mean(dataset$draft_number)
+sd(dataset$draft_number)
+
+
+ggplot() +
+  geom_histogram(data = datasetKentucky, aes(x = draft_number, fill = college), binwidth = 0.3, fill = "blue", alpha = 0.5) + 
+  geom_histogram(data = datasetDuke, aes(x = draft_number, fill = college), binwidth = 0.3, fill = "red", alpha = 0.5) +
+  scale_fill_manual(values = c("Kentucky" = "blue", "Duke" = "red"), name = "College") +
+  ggtitle("Distribution of College Players Draft Numbers from 1996-2019") +
+  xlab("Draft Number (Natural Log)") +
+  ylab("Count")
+
+my_glm <- lm(draft_number ~ player_height + college, data = dataset)
+
+hist(my_glm$residuals, main = "Model Residuals", xlab = "Residual",col = "light grey", right = F)
+plot(my_glm$fitted.values, my_glm$residuals, xlab = "Fitted Values",ylab = "Residuals", main = "Residual Plot", pch = 20)
+abline(h = 0, col = "red")
+summary(my_glm)
+
+dataset$yhat <- my_glm$fitted.values
+ggplot(dataset, aes(x = player_height, y = draft_number, col = college, shape = college)) +
+  geom_point() + xlab("Height (cm)") + ylab("Draft Position (Log)") +
+  labs(col = "College", shape = "College") + ggtitle("Draft Position by College, Height") +
+  theme_classic() + scale_color_manual(values = c("blue", "orange")) +
+  geom_line(aes(y = yhat))
+
+plot(dataset$player_height, dataset$draft_number, xlab = "Player Height (cm)", ylab = "Draft Position",
+     main = "Player Height and Draft Position", pch = 20)
+
+
+             
+```
+
+
+```{r}
+
+
+
+```
